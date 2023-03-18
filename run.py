@@ -1,3 +1,5 @@
+
+
 import pytchat
 import openai
 import json
@@ -10,6 +12,8 @@ import io
 import pyttsx3
 import sys
 import argparse
+import random
+import gtts
 
 def initTTS():
     global engine
@@ -51,7 +55,7 @@ def initVar():
         key = data["keys"][0]["EL_key"]
         voice = data["EL_data"][0]["voice"]
 
-    tts_list = ["pyttsx3", "EL"]
+    tts_list = ["pyttsx3", "EL", "gtts"]
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-id", "--video_id", type=str)
@@ -64,6 +68,13 @@ def initVar():
 
     if tts_type == "pyttsx3":
         initTTS()
+    elif tts_type == "gtts":
+        initGTTS()
+
+
+def initGTTS():
+    global gtts_language
+    gtts_language = data["gtts_data"][0]["language"]
 
 
 def Controller_TTS(message):
@@ -71,6 +82,8 @@ def Controller_TTS(message):
         EL_TTS(message)
     elif tts_type == "pyttsx3":
         pyttsx3_TTS(message)
+    elif tts_type == "gtts":
+        gtts_TTS(message)
 
 
 def pyttsx3_TTS(message):
@@ -100,6 +113,13 @@ def EL_TTS(message):
     play(audio_content)
 
 
+def gtts_TTS(message):
+
+    tts = gTTS(message, lang=gtts_language)
+    tts.save("response.mp3")
+    play(AudioSegment.from_mp3("response.mp3"))
+
+
 def read_chat():
 
     chat = pytchat.create(video_id=video_id)
@@ -119,7 +139,6 @@ def read_chat():
                 schat.terminate()
                 return
 
-
             time.sleep(1)
 
 
@@ -138,7 +157,7 @@ def llm(message):
     )
 
     json_object = json.loads(str(response))
-    return(json_object['choices'][0]['text'])
+    return(json_object['choices'][random.randint(0, len(json_object['choices'])-1)]['text'])
 
 
 if __name__ == "__main__":
